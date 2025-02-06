@@ -8,6 +8,8 @@
 <body>
     <h1>GPS Tracker - Lokasi Real-time</h1>
     <p id="location">Menunggu data...</p>
+    <button onclick="getUserLocation()">Gunakan Lokasi HP</button>
+    <div id="map" style="height: 400px; width: 100%;"></div>
 
     <script type="module">
         // Impor Firebase SDK
@@ -16,7 +18,7 @@
 
         // Konfigurasi Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyCXhCJvXr-ZBJSajEqmvIGuP1D_uS6z2N0",
+            apiKey: "AIzaSyD4ki8AXQ3RDxqvN_TAM3SLC37K6qoaJOg",
             authDomain: "gpstracker-6562b.firebaseapp.com",
             databaseURL: "https://gpstracker-6562b-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "gpstracker-6562b",
@@ -30,38 +32,65 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // Fungsi untuk menyimpan data GPS ke Firebase
-        function sendGPSData(latitude, longitude) {
-            set(ref(database, 'locations/device_id_1'), {
-                latitude: latitude,
-                longitude: longitude,
-                timestamp: Date.now()
-            }).then(() => {
-                console.log("Data berhasil dikirim!");
-            }).catch((error) => {
-                console.error("Gagal mengirim data:", error);
-            });
-        }
+        let map;
+        let marker;
 
-        // Fungsi untuk mengambil data GPS dari Firebase secara real-time
-        function getGPSData() {
+        // Inisialisasi Google Maps
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 15,
+                center: { lat: -6.200000, lng: 106.816666 } // Lokasi default (Jakarta)
+            });
+
+            marker = new google.maps.Marker({
+                position: { lat: -6.200000, lng: 106.816666 },
+                map: map
+            });
+
+            // Update lokasi berdasarkan data Firebase
             const locationRef = ref(database, 'locations/device_id_1');
             onValue(locationRef, (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
-                    document.getElementById('location').innerText =
+                    const newPos = { lat: data.latitude, lng: data.longitude };
+                    map.setCenter(newPos);
+                    marker.setPosition(newPos);
+                    document.getElementById('location').innerText = 
                         `Latitude: ${data.latitude}, Longitude: ${data.longitude}, Waktu: ${new Date(data.timestamp).toLocaleString()}`;
-                } else {
-                    document.getElementById('location').innerText = "Belum ada data GPS.";
                 }
             });
         }
 
-        // Panggil fungsi untuk mengambil data GPS secara real-time
-        getGPSData();
+        // Fungsi untuk mendapatkan lokasi dari HP
+        function getUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
 
-        // Contoh pengiriman data GPS (dapat diganti dengan data dari perangkat GPS)
-        sendGPSData(12.3456, 65.4321);
+                    // Simpan lokasi HP ke Firebase
+                    set(ref(database, 'locations/device_hp'), {
+                        latitude: lat,
+                        longitude: lng,
+                        timestamp: Date.now()
+                    });
+
+                    // Update tampilan peta
+                    map.setCenter({ lat, lng });
+                    marker.setPosition({ lat, lng });
+
+                    alert("Lokasi HP berhasil dikirim ke Firebase!");
+                }, () => {
+                    alert("Gagal mendapatkan lokasi HP.");
+                });
+            } else {
+                alert("Browser tidak mendukung geolokasi.");
+            }
+        }
     </script>
+
+    <!-- Google Maps API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD4ki8AXQ3RDxqvN_TAM3SLC37K6qoaJOg&callback=initMap"></script>
+
 </body>
 </html>
