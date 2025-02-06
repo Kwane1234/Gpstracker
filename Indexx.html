@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Tracker</title>
+</head>
+<body>
+    <h1>GPS Tracker - Lokasi Real-time</h1>
+    <p id="location">Menunggu data...</p>
+
+    <script type="module">
+        // Impor Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
+
+        // Konfigurasi Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXhCJvXr-ZBJSajEqmvIGuP1D_uS6z2N0",
+            authDomain: "gpstracker-6562b.firebaseapp.com",
+            databaseURL: "https://gpstracker-6562b-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "gpstracker-6562b",
+            storageBucket: "gpstracker-6562b.appspot.com",
+            messagingSenderId: "325617669858",
+            appId: "1:325617669858:web:ca1273765292399752f0bb",
+            measurementId: "G-6JKYRDEVT5"
+        };
+
+        // Inisialisasi Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Fungsi untuk menyimpan data GPS ke Firebase
+        function sendGPSData(latitude, longitude) {
+            set(ref(database, 'locations/device_id_1'), {
+                latitude: latitude,
+                longitude: longitude,
+                timestamp: Date.now()
+            }).then(() => {
+                console.log("Data berhasil dikirim!");
+            }).catch((error) => {
+                console.error("Gagal mengirim data:", error);
+            });
+        }
+
+        // Fungsi untuk mengambil data GPS dari Firebase secara real-time
+        function getGPSData() {
+            const locationRef = ref(database, 'locations/device_id_1');
+            onValue(locationRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    document.getElementById('location').innerText =
+                        `Latitude: ${data.latitude}, Longitude: ${data.longitude}, Waktu: ${new Date(data.timestamp).toLocaleString()}`;
+                } else {
+                    document.getElementById('location').innerText = "Belum ada data GPS.";
+                }
+            });
+        }
+
+        // Panggil fungsi untuk mengambil data GPS secara real-time
+        getGPSData();
+
+        // Contoh pengiriman data GPS (dapat diganti dengan data dari perangkat GPS)
+        sendGPSData(12.3456, 65.4321);
+    </script>
+</body>
+</html>
