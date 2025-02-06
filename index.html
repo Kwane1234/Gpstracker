@@ -12,11 +12,9 @@
     <div id="map" style="height: 400px; width: 100%;"></div>
 
     <script type="module">
-        // Impor Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
 
-        // Konfigurasi Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyD4ki8AXQ3RDxqvN_TAM3SLC37K6qoaJOg",
             authDomain: "gpstracker-6562b.firebaseapp.com",
@@ -28,18 +26,16 @@
             measurementId: "G-6JKYRDEVT5"
         };
 
-        // Inisialisasi Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
         let map;
         let marker;
 
-        // Inisialisasi Google Maps
         function initMap() {
             map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 15,
-                center: { lat: -6.200000, lng: 106.816666 } // Lokasi default (Jakarta)
+                center: { lat: -6.200000, lng: 106.816666 }
             });
 
             marker = new google.maps.Marker({
@@ -47,7 +43,6 @@
                 map: map
             });
 
-            // Update lokasi berdasarkan data Firebase
             const locationRef = ref(database, 'locations/device_id_1');
             onValue(locationRef, (snapshot) => {
                 const data = snapshot.val();
@@ -61,21 +56,20 @@
             });
         }
 
-        // Fungsi untuk mendapatkan lokasi dari HP
+        window.initMap = initMap; // **Fix untuk error "initMap is not a function"**
+
         function getUserLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
 
-                    // Simpan lokasi HP ke Firebase
                     set(ref(database, 'locations/device_hp'), {
                         latitude: lat,
                         longitude: lng,
                         timestamp: Date.now()
                     });
 
-                    // Update tampilan peta
                     map.setCenter({ lat, lng });
                     marker.setPosition({ lat, lng });
 
@@ -89,8 +83,7 @@
         }
     </script>
 
-    <!-- Google Maps API -->
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD4ki8AXQ3RDxqvN_TAM3SLC37K6qoaJOg&callback=initMap"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD4ki8AXQ3RDxqvN_TAM3SLC37K6qoaJOg&loading=async&callback=initMap"></script>
 
 </body>
 </html>
